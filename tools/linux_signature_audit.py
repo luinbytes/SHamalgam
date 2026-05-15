@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+import argparse
+import collections
+import pathlib
+import re
+
+
+MODULE_MAP = {
+    "client.dll": "tf/bin/linux64/client.so",
+    "server.dll": "tf/bin/linux64/server.so",
+    "engine.dll": "bin/linux64/engine.so",
+    "materialsystem.dll": "bin/linux64/materialsystem.so",
+    "vguimatsurface.dll": "bin/linux64/vguimatsurface.so",
+    "vgui2.dll": "bin/linux64/vgui2.so",
+    "vphysics.dll": "bin/linux64/vphysics.so",
+    "studiorender.dll": "bin/linux64/studiorender.so",
+    "inputsystem.dll": "bin/linux64/inputsystem.so",
+    "datacache.dll": "bin/linux64/datacache.so",
+    "filesystem_stdio.dll": "bin/linux64/filesystem_stdio.so",
+    "soundemittersystem.dll": "bin/linux64/soundemittersystem.so",
+    "vstdlib.dll": "bin/linux64/libvstdlib.so",
+    "tier0.dll": "bin/linux64/libtier0.so",
+}
+
+SIGNATURE_RE = re.compile(
+    r'MAKE_SIGNATURE\s*\(\s*([A-Za-z0-9_]+)\s*,\s*"([^"]+)"\s*,\s*"([0-9A-Fa-f? ]+)"',
+    re.MULTILINE,
+)
+
+
+def pattern_bytes(signature: str):
+    return [None if "?" in token else int(token, 16) for token in signature.split()]
+
+
+def find_pattern(data: bytes, pattern):
+    if not pattern or len(data) < len(pattern):
+        return -1
+
+    anchor = next((i for i, byte in enumerate(pattern) if byte is not None), None)
+    if anchor is None:
+        return 0
+
+    needle = bytes([pattern[anchor]])
+    pos = 0
+    last_start = len(data) - len(pattern)
+    while True:
+        found = data.find(needle, pos)
+        if found < 0:
+            return -1
+
+        start = found - anchor
+        if start < 0:
+            pos = found + 1
+            continue
+        if start > last_start:
+            return -1
+
+        if all(byte is None or data[start + i] == byte for i, byte in enumerate(pattern)):
+            return start
+        pos = found + 1
+
+
+def iter_sources(root: pathlib.Path):
+    for suffix in ("*.h", "*.hpp", "*.cpp"):
+        yield from root.rglob(suffix)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Scan SHamalgam Windows byte signatures against native Linux TF2 modules.")
+    parser.add_argument("--tf2", default="/mnt/ssd/.games/steamapps/common/Team Fortress 2", help="Native Linux TF2 install root")
+    parser.add_argument("--source", default="Amalgam/src", help="Source root to scan")
+    parser.add_argument("--list", choices=("all", "hits", "misses", "missing-modules"), help="Print matching entries")
+    args = parser.parse_args()
+
+    tf2_root = pathlib.Path(args.tf2)
+    source_root = pathlib.Path(args.source)
+    modules = {name: tf2_root / rel for name, rel in MODULE_MAP.items()}
+    cache = {}
+    results = []
+
+    for path in iter_sources(source_root):
+        text = path.read_text(errors="ignore")
+        for match in SIGNATURE_RE.finditer(text):
+            name, module, signature = match.group(1), match.group(2).lower(), match.group(3)
+            module_path = modules.get(module)
+            if not module_path or not module_path.exists():
+                results.append(("missing-module", module, name, path, ""))
+                continue
+
+            data = cache.setdefault(module_path, module_path.read_bytes())
+            offset = find_pattern(data, pattern_bytes(signature))
+            results.append(("hit" if offset >= 0 else "miss", module, name, path, hex(offset) if offset >= 0 else ""))
+
+    status = collections.Counter(result[0] for result in results)
+    by_module = collections.defaultdict(collections.Counter)
+    for state, module, *_ in results:
+        by_module[module][state] += 1
+
+    print(f"TF2 root: {tf2_root}")
+    print(f"Signatures scanned: {len(results)}")
+    print("Status:", dict(status))
+    print("By module:")
+    for module in sorted(by_module):
+        print(f"  {module}: {dict(by_module[module])}")
+
+    if args.list:
+        want = args.list.rstrip("s")
+        print()
+        for state, module, name, path, offset in results:
+            if args.list == "all" or state == want:
+                suffix = f" @ {offset}" if offset else ""
+                print(f"{state}: {module}: {name}: {path}{suffix}")
+
+
+if __name__ == "__main__":
+    main()
