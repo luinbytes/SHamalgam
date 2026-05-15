@@ -26,6 +26,10 @@ SIGNATURE_RE = re.compile(
     r'MAKE_SIGNATURE\s*\(\s*([A-Za-z0-9_]+)\s*,\s*"([^"]+)"\s*,\s*"([0-9A-Fa-f? ]+)"',
     re.MULTILINE,
 )
+INTERFACE_VERSION_RE = re.compile(
+    r'MAKE_INTERFACE_VERSION\s*\(\s*[^,]+,\s*([^,]+),\s*"([^"]+)"\s*,\s*"([^"]+)"',
+    re.MULTILINE,
+)
 
 
 def pattern_bytes(signature: str):
@@ -70,6 +74,7 @@ def main():
     parser.add_argument("--tf2", default="/mnt/ssd/.games/steamapps/common/Team Fortress 2", help="Native Linux TF2 install root")
     parser.add_argument("--source", default="Amalgam/src", help="Source root to scan")
     parser.add_argument("--list", choices=("all", "hits", "misses", "missing-modules"), help="Print matching entries")
+    parser.add_argument("--interfaces", action="store_true", help="Also check MAKE_INTERFACE_VERSION strings")
     args = parser.parse_args()
 
     tf2_root = pathlib.Path(args.tf2)
@@ -110,6 +115,29 @@ def main():
             if args.list == "all" or state == want:
                 suffix = f" @ {offset}" if offset else ""
                 print(f"{state}: {module}: {name}: {path}{suffix}")
+
+    if args.interfaces:
+        interface_results = []
+        for path in iter_sources(source_root):
+            text = path.read_text(errors="ignore")
+            for match in INTERFACE_VERSION_RE.finditer(text):
+                name, module, version = match.group(1), match.group(2).lower(), match.group(3)
+                module_path = modules.get(module)
+                if not module_path or not module_path.exists():
+                    interface_results.append(("missing-module", module, name, version, path))
+                    continue
+
+                data = cache.setdefault(module_path, module_path.read_bytes())
+                interface_results.append(("present" if version.encode() in data else "missing", module, name, version, path))
+
+        interface_status = collections.Counter(result[0] for result in interface_results)
+        print()
+        print(f"Interface versions checked: {len(interface_results)}")
+        print("Interface status:", dict(interface_status))
+        if args.list:
+            print()
+            for state, module, name, version, path in interface_results:
+                print(f"interface-{state}: {module}: {name}: {version}: {path}")
 
 
 if __name__ == "__main__":
