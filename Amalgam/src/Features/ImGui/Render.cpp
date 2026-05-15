@@ -1,7 +1,9 @@
 #include "Render.h"
 
+#ifndef __linux__
 #include "../../Hooks/Direct3DDevice9.h"
 #include <ImGui/imgui_impl_win32.h>
+#endif
 #include "Fonts/MaterialDesign/MaterialIcons.h"
 #include "Fonts/MaterialDesign/IconDefinitions.h"
 #include "Fonts/CascadiaMono/CascadiaMono.h"
@@ -9,6 +11,7 @@
 #include "Fonts/Roboto/RobotoBlack.h"
 #include "Menu/Menu.h"
 
+#ifndef __linux__
 void CRender::Render(IDirect3DDevice9* pDevice)
 {
 	static std::once_flag tFlag; std::call_once(tFlag, [&]
@@ -38,6 +41,7 @@ void CRender::Render(IDirect3DDevice9* pDevice)
 	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 	pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, dwOldRGB);
 }
+#endif
 
 void CRender::LoadColors()
 {
@@ -131,6 +135,7 @@ void CRender::LoadStyle()
 	style.WindowRounding = H::Draw.Scale(4);
 }
 
+#ifndef __linux__
 void CRender::Initialize(IDirect3DDevice9* pDevice)
 {
 	ImGui::CreateContext();
@@ -146,6 +151,7 @@ void CRender::Initialize(IDirect3DDevice9* pDevice)
 
 	m_bLoaded = true;
 }
+#endif
 
 void CRender::Reload()
 {

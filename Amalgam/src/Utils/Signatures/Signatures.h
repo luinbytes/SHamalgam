@@ -55,10 +55,10 @@ ADD_FEATURE_CUSTOM(CSignatures, Signatures, U);
 
 #define SIGNATURE(name, type, sig, ...) inline type name() \
 { \
-	return S::sig##_##name.Call<type>(##__VA_ARGS__); \
+	return S::sig##_##name.Call<type>(__VA_ARGS__); \
 }
 
-#define SIGNATURE_ARGS(name, type, sig, args, ...) inline type name##args \
+#define SIGNATURE_ARGS(name, type, sig, args, ...) inline type name args \
 { \
-	return S::sig##_##name.Call<type>(##__VA_ARGS__); \
+	return S::sig##_##name.Call<type>(__VA_ARGS__); \
 }

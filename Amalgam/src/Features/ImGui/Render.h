@@ -1,6 +1,10 @@
 #pragma once
 #include "../../SDK/SDK.h"
+#ifdef __linux__
+#include <d3d9.h>
+#else
 #include <ImGui/imgui_impl_dx9.h>
+#endif
 #include <ImGui/imgui.h>
 
 class CRender

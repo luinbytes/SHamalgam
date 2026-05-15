@@ -1,6 +1,6 @@
 <div align="center">
 
-  ## <img src=".github/assets/amalgam_combo.png" alt="Amalgam" height="100">
+  ## SHamalgam
 
   [![Stars](https://img.shields.io/github/stars/rei-2/Amalgam?style=for-the-badge&color=white&logo=github)](/../../stargazers)
   [![Discord](https://img.shields.io/discord/1227898008373297223?style=for-the-badge&color=blue&labelColor=grey&label=Discord&logo=discord)](https://discord.gg/RbP9DfkUhe)
@@ -23,6 +23,30 @@
 
   ##
 
-  Read about Amalgam's documentation and features [here](../../wiki). 
+  Native Linux porting branch for Amalgam TF2.
 
 </div>
+
+## Status
+
+SHamalgam is an in-progress native Linux TF2 internal port of Amalgam. The goal is
+1:1 behavior with the Windows internal, not a reduced rewrite.
+
+Current work is focused on:
+
+- Building the original codebase as a Linux shared object.
+- Replacing Win32/D3D9/MinHook entry, input, render, and patching layers with Linux-native equivalents.
+- Revalidating every module name, interface lookup, vtable index, and signature against native Linux TF2 binaries.
+
+Windows signatures and offsets are kept as labels and a porting map only. They are
+not assumed to be valid on native Linux TF2.
+
+## Build
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_COMPILER=clang++
+cmake --build build -j"$(nproc)"
+```
+
+This is not production-ready yet. Compile success is only the first gate; runtime
+parity requires Linux TF2 binary verification.

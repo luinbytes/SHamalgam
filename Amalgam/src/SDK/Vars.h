@@ -144,7 +144,8 @@ public:
 #define Enum(name, ...) \
 	namespace name##Enum { enum name##Enum { __VA_ARGS__ }; }
 #define CVarEnum(name, title, value, flags, none, values, ...) \
-	CVarValues(name, title, value, flags, none, values); \
+	constexpr inline const char* name##_() { return __FUNCTION__; } \
+	inline ConfigVar<decltype(value)> name = { value, { title }, name##_(), Section(), flags, { values }, none }; \
 	Enum(name, __VA_ARGS__);
 
 #define NONE 0

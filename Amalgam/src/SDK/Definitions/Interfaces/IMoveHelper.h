@@ -7,7 +7,7 @@
 
 class CGameTrace;
 class IPhysicsSurfaceProps;
-enum PLAYER_ANIM;
+enum PLAYER_ANIM : int;
 
 class IMoveHelper
 {

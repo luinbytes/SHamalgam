@@ -18,19 +18,19 @@ struct InterfaceInit_t
 #define MAKE_INTERFACE_VERSION(type, symbol, dll, version, ...) namespace I { inline type *symbol = nullptr; } \
 namespace MAKE_INTERFACE_SCOPE \
 {\
-	inline InterfaceInit_t symbol##InterfaceInit_t(reinterpret_cast<void**>(&I::symbol), dll, version, 0, __VA_ARGS__); \
+	inline InterfaceInit_t symbol##InterfaceInit_t(reinterpret_cast<void**>(&I::symbol), dll, version, 0, ##__VA_ARGS__); \
 }
 
 #define MAKE_INTERFACE_EXPORT(type, symbol, dll, name, deref, ...) namespace I { inline type *symbol = nullptr; } \
 namespace MAKE_INTERFACE_SCOPE \
 {\
-	inline InterfaceInit_t symbol##InterfaceInit_t(reinterpret_cast<void**>(&I::symbol), dll, name, 1, 0, deref, __VA_ARGS__); \
+	inline InterfaceInit_t symbol##InterfaceInit_t(reinterpret_cast<void**>(&I::symbol), dll, name, 1, 0, deref, ##__VA_ARGS__); \
 }
 
 #define MAKE_INTERFACE_SIGNATURE(type, symbol, dll, signature, offset, deref, ...) namespace I { inline type *symbol = nullptr; } \
 namespace MAKE_INTERFACE_SCOPE \
 {\
-	inline InterfaceInit_t symbol##InterfaceInit_t(reinterpret_cast<void**>(&I::symbol), dll, signature, 2, offset, deref, __VA_ARGS__); \
+	inline InterfaceInit_t symbol##InterfaceInit_t(reinterpret_cast<void**>(&I::symbol), dll, signature, 2, offset, deref, ##__VA_ARGS__); \
 }
 
 #define MAKE_INTERFACE_NULL(type, symbol) namespace I { inline type *symbol = nullptr; }

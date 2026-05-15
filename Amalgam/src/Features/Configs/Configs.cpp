@@ -358,7 +358,7 @@ CConfigs::CConfigs()
 		std::filesystem::create_directory(m_sMaterialsPath);
 }
 
-#define IsType(t) pBase->m_iType == typeid(t).hash_code()
+#define IsType(...) pBase->m_iType == typeid(__VA_ARGS__).hash_code()
 
 template <class T>
 static inline void SaveMain(BaseVar*& pBase, boost::property_tree::ptree& tTree)

@@ -4,7 +4,7 @@
 #include "../Configs/Configs.h"
 #include <functional>
 
-#define IsType(t) pBase->m_iType == typeid(t).hash_code()
+#define IsType(...) pBase->m_iType == typeid(__VA_ARGS__).hash_code()
 
 template <class T>
 static inline void SetMain(BaseVar*& pBase, int iBind)

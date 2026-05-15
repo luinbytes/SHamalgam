@@ -1,7 +1,9 @@
 #include "Hooks.h"
 
 #include "../../Core/Core.h"
+#ifndef __linux__
 #include "../../Hooks/Direct3DDevice9.h"
+#endif
 
 CHook::CHook(const std::string& sName, void* pInitFunc)
 {
@@ -13,7 +15,9 @@ bool CHooks::Initialize()
 {
 	MH_Initialize();
 
+#ifndef __linux__
 	WndProc::Initialize();
+#endif
 	for (auto& [_, pHook] : m_mHooks)
 		reinterpret_cast<void(__cdecl*)()>(pHook->m_pInitFunc)();
 
@@ -28,6 +32,8 @@ bool CHooks::Unload()
 	m_bFailed = MH_Uninitialize() != MH_OK;
 	if (m_bFailed)
 		U::Core.AppendFailText("MinHook failed to unload all hooks!");
+#ifndef __linux__
 	WndProc::Unload();
+#endif
 	return !m_bFailed;
 }
