@@ -9,6 +9,11 @@ MAKE_SIGNATURE(COPRenderSprites_RenderTwoSequenceSpriteCard, "client.dll", "48 8
 class CSheet;
 typedef __m128 fltx4;
 
+static inline float& Fltx4Lane(fltx4& value, int lane)
+{
+	return reinterpret_cast<float*>(&value)[lane];
+}
+
 class CParticleSystemDefinition
 {
 public:
@@ -168,9 +173,9 @@ MAKE_HOOK(COPRenderSprites_RenderSpriteCard, S::COPRenderSprites_RenderSpriteCar
     if (!(Vars::Visuals::World::Modulations.Value & Vars::Visuals::World::ModulationsEnum::Particle) || SDK::CleanScreenshot())
         return CALL_ORIGINAL(rcx, meshBuilder, pCtx, info, hParticle, pSortList, pCamera);
 
-    info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 0].m128_f32[hParticle & 0x3] = Vars::Colors::ParticleModulation.Value.r / 255.f; // red
-    info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 1].m128_f32[hParticle & 0x3] = Vars::Colors::ParticleModulation.Value.g / 255.f; // green
-    info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 2].m128_f32[hParticle & 0x3] = Vars::Colors::ParticleModulation.Value.b / 255.f; // blue
+    Fltx4Lane(info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 0], hParticle & 0x3) = Vars::Colors::ParticleModulation.Value.r / 255.f; // red
+    Fltx4Lane(info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 1], hParticle & 0x3) = Vars::Colors::ParticleModulation.Value.g / 255.f; // green
+    Fltx4Lane(info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 2], hParticle & 0x3) = Vars::Colors::ParticleModulation.Value.b / 255.f; // blue
     if (Vars::Colors::ParticleModulation.Value.a != 255)
         pSortList->m_nAlpha = Vars::Colors::ParticleModulation.Value.a;
     CALL_ORIGINAL(rcx, meshBuilder, pCtx, info, hParticle, pSortList, pCamera);
@@ -184,9 +189,9 @@ MAKE_HOOK(COPRenderSprites_RenderTwoSequenceSpriteCard, S::COPRenderSprites_Rend
     if (!(Vars::Visuals::World::Modulations.Value &Vars::Visuals::World::ModulationsEnum::Particle) || SDK::CleanScreenshot())
         return CALL_ORIGINAL(rcx, meshBuilder, pCtx, info, hParticle, pSortList, pCamera);
 
-    info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 0].m128_f32[hParticle & 0x3] = Vars::Colors::ParticleModulation.Value.r / 255.f; // red
-    info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 1].m128_f32[hParticle & 0x3] = Vars::Colors::ParticleModulation.Value.g / 255.f; // green
-    info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 2].m128_f32[hParticle & 0x3] = Vars::Colors::ParticleModulation.Value.b / 255.f; // blue
+    Fltx4Lane(info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 0], hParticle & 0x3) = Vars::Colors::ParticleModulation.Value.r / 255.f; // red
+    Fltx4Lane(info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 1], hParticle & 0x3) = Vars::Colors::ParticleModulation.Value.g / 255.f; // green
+    Fltx4Lane(info.m_pRGB[((hParticle / 4) * info.m_nRGBStride) + 2], hParticle & 0x3) = Vars::Colors::ParticleModulation.Value.b / 255.f; // blue
     if (Vars::Colors::ParticleModulation.Value.a != 255)
         pSortList->m_nAlpha = Vars::Colors::ParticleModulation.Value.a;
     CALL_ORIGINAL(rcx, meshBuilder, pCtx, info, hParticle, pSortList, pCamera);

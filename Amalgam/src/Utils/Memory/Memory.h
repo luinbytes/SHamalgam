@@ -54,7 +54,7 @@ public:
 	{
 		if (const auto hModule = GetModuleHandle(szModule))
 			return reinterpret_cast<T>(GetProcAddress(hModule, szExport));
-		return reinterpret_cast<T>(nullptr);
+		return nullptr;
 	}
 };
 

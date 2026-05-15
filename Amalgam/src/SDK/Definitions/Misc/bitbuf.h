@@ -6,7 +6,7 @@
 #pragma warning (disable : 4002)
 class Vec3;
 
-#define nullAssert assert
+#define nullAssert(expr, ...) assert(expr)
 
 #if _DEBUG
 #define BITBUF_INLINE inline

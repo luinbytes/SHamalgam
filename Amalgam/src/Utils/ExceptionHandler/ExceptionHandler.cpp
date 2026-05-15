@@ -1,5 +1,17 @@
 #include "ExceptionHandler.h"
 
+#ifdef __linux__
+
+void CExceptionHandler::Initialize(LPVOID)
+{
+}
+
+void CExceptionHandler::Unload()
+{
+}
+
+#else
+
 #include "../../Features/Configs/Configs.h"
 
 #include <ImageHlp.h>
@@ -190,3 +202,5 @@ void CExceptionHandler::Unload()
 {
 	RemoveVectoredExceptionHandler(s_pHandle);
 }
+
+#endif

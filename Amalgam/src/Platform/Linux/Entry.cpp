@@ -1,7 +1,7 @@
 #ifdef __linux__
 
-#include "../Core/Core.h"
-#include "../Utils/ExceptionHandler/ExceptionHandler.h"
+#include "Core/Core.h"
+#include "Utils/ExceptionHandler/ExceptionHandler.h"
 #include <thread>
 #include <atomic>
 
@@ -37,4 +37,3 @@ static void SHamalgamDetach()
 }
 
 #endif
-

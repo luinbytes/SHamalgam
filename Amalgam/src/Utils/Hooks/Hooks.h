@@ -38,15 +38,15 @@ public:
 		namespace name \
 		{ \
 			void Init(); \
-			inline CHook Hook(#name, Init); \
+			inline CHook Hook(#name, reinterpret_cast<void*>(Init)); \
 			using FN = type(__fastcall*)(__VA_ARGS__); \
 			type __fastcall Func(__VA_ARGS__); \
 		} \
 	} \
-	void Hooks::name::Init() { Hook.Create(reinterpret_cast<void*>(address), Func); } \
+	void Hooks::name::Init() { Hook.Create(reinterpret_cast<void*>(address), reinterpret_cast<void*>(Func)); } \
 	type __fastcall Hooks::name::Func(__VA_ARGS__)
 
-	#define DEBUG_RETURN()
+	#define DEBUG_RETURN(...)
 #else
 	#define DEBUG_VAR(name) \
 	namespace Vars { \
@@ -62,12 +62,12 @@ public:
 		namespace name \
 		{ \
 			void Init(); \
-			inline CHook Hook(#name, Init); \
+			inline CHook Hook(#name, reinterpret_cast<void*>(Init)); \
 			using FN = type(__fastcall*)(__VA_ARGS__); \
 			type __fastcall Func(__VA_ARGS__); \
 		} \
 	} \
-	void Hooks::name::Init() { Hook.Create(reinterpret_cast<void*>(address), Func); } \
+	void Hooks::name::Init() { Hook.Create(reinterpret_cast<void*>(address), reinterpret_cast<void*>(Func)); } \
 	type __fastcall Hooks::name::Func(__VA_ARGS__)
 
 	#define DEBUG_RETURN(hook, ...) \
