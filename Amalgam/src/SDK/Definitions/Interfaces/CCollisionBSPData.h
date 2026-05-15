@@ -49,4 +49,8 @@ public:
 	CRangeValidatedArray<bool> portalopen;
 };
 
+#ifdef __linux__
+MAKE_INTERFACE_NULL(CCollisionBSPData, BSPData);
+#else
 MAKE_INTERFACE_SIGNATURE(CCollisionBSPData, BSPData, "engine.dll", "48 8D 15 ? ? ? ? 4C 03 05", 0x0, 0);
+#endif

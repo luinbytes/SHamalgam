@@ -87,6 +87,9 @@ bool CNullInterfaces::Initialize()
 
 	I::GlobalVars = LinuxModuleOffset<CGlobalVarsBase>("engine.dll", 0xA6EC80);
 	Validate(I::GlobalVars);
+
+	I::BSPData = LinuxModuleOffset<CCollisionBSPData>("engine.dll", 0xC41040);
+	Validate(I::BSPData);
 #endif
 
 	I::TFPartyClient = S::Get_TFPartyClient.Call<CTFPartyClient*>();
