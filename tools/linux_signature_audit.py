@@ -21,15 +21,19 @@ MODULE_MAP = {
     "vstdlib.dll": "bin/linux64/libvstdlib.so",
     "tier0.dll": "bin/linux64/libtier0.so",
 }
+STEAM_MODULE_MAP = {
+    "steamclient64.dll": "linux64/steamclient.so",
+}
 
 SIGNATURE_RE = re.compile(
     r'MAKE_SIGNATURE\s*\(\s*([A-Za-z0-9_]+)\s*,\s*"([^"]+)"\s*,\s*"([0-9A-Fa-f? ]+)"',
     re.MULTILINE,
 )
 INTERFACE_VERSION_RE = re.compile(
-    r'MAKE_INTERFACE_VERSION\s*\(\s*[^,]+,\s*([^,]+),\s*"([^"]+)"\s*,\s*"([^"]+)"',
+    r'MAKE_INTERFACE_VERSION\s*\(\s*[^,]+,\s*([^,]+),\s*"([^"]+)"\s*,\s*("[^"]+"|[A-Za-z0-9_]+)',
     re.MULTILINE,
 )
+DEFINE_STRING_RE = re.compile(r"#define\s+([A-Za-z0-9_]+)\s+\"([^\"]+)\"")
 
 
 def pattern_bytes(signature: str):
@@ -69,17 +73,29 @@ def iter_sources(root: pathlib.Path):
         yield from root.rglob(suffix)
 
 
+def collect_string_defines(root: pathlib.Path):
+    defines = {}
+    for path in iter_sources(root):
+        text = path.read_text(errors="ignore")
+        for match in DEFINE_STRING_RE.finditer(text):
+            defines[match.group(1)] = match.group(2)
+    return defines
+
+
 def main():
     parser = argparse.ArgumentParser(description="Scan SHamalgam Windows byte signatures against native Linux TF2 modules.")
     parser.add_argument("--tf2", default="/mnt/ssd/.games/steamapps/common/Team Fortress 2", help="Native Linux TF2 install root")
+    parser.add_argument("--steam", default="/home/lu/.local/share/Steam", help="Native Steam install root")
     parser.add_argument("--source", default="Amalgam/src", help="Source root to scan")
     parser.add_argument("--list", choices=("all", "hits", "misses", "missing-modules"), help="Print matching entries")
     parser.add_argument("--interfaces", action="store_true", help="Also check MAKE_INTERFACE_VERSION strings")
     args = parser.parse_args()
 
     tf2_root = pathlib.Path(args.tf2)
+    steam_root = pathlib.Path(args.steam)
     source_root = pathlib.Path(args.source)
     modules = {name: tf2_root / rel for name, rel in MODULE_MAP.items()}
+    modules.update({name: steam_root / rel for name, rel in STEAM_MODULE_MAP.items()})
     cache = {}
     results = []
 
@@ -117,11 +133,13 @@ def main():
                 print(f"{state}: {module}: {name}: {path}{suffix}")
 
     if args.interfaces:
+        string_defines = collect_string_defines(source_root)
         interface_results = []
         for path in iter_sources(source_root):
             text = path.read_text(errors="ignore")
             for match in INTERFACE_VERSION_RE.finditer(text):
-                name, module, version = match.group(1), match.group(2).lower(), match.group(3)
+                name, module, version_expr = match.group(1), match.group(2).lower(), match.group(3)
+                version = version_expr[1:-1] if version_expr.startswith('"') else string_defines.get(version_expr, version_expr)
                 module_path = modules.get(module)
                 if not module_path or not module_path.exists():
                     interface_results.append(("missing-module", module, name, version, path))

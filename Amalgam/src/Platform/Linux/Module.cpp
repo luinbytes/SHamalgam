@@ -78,6 +78,7 @@ std::vector<std::string> ModuleAliases(const char* requested)
 		{ "soundemittersystem.dll", { "soundemittersystem.so" } },
 		{ "vstdlib.dll", { "libvstdlib.so", "vstdlib.so" } },
 		{ "tier0.dll", { "libtier0.so", "tier0.so" } },
+		{ "steamclient64.dll", { "steamclient.so", "libsteamclient.so" } },
 	};
 
 	std::vector<std::string> result = { requested, name };
@@ -132,7 +133,13 @@ extern "C" HMODULE GetModuleHandle(const char* name)
 			return reinterpret_cast<HMODULE>(module.base);
 	}
 
-	return dlopen(name, RTLD_NOLOAD | RTLD_NOW);
+	for (const auto& alias : ModuleAliases(name))
+	{
+		if (auto handle = dlopen(alias.c_str(), RTLD_NOLOAD | RTLD_NOW))
+			return handle;
+	}
+
+	return nullptr;
 }
 
 extern "C" FARPROC GetProcAddress(HMODULE hModule, const char* symbol)
