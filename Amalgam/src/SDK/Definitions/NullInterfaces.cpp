@@ -84,6 +84,9 @@ bool CNullInterfaces::Initialize()
 
 	I::ThirdPersonManager = LinuxModuleOffset<CThirdPersonManager>("client.dll", 0x2DE55C0);
 	Validate(I::ThirdPersonManager);
+
+	I::GlobalVars = LinuxModuleOffset<CGlobalVarsBase>("engine.dll", 0xA6EC80);
+	Validate(I::GlobalVars);
 #endif
 
 	I::TFPartyClient = S::Get_TFPartyClient.Call<CTFPartyClient*>();

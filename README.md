@@ -62,7 +62,7 @@ Current audit baseline:
 - Linux shared object build: passing
 - Interface version strings checked: 24 present
 - Windows/native byte signatures checked: 258 total, 9 present and 249 missing
-- Signature-backed interface lookups checked: 6 missing on native Linux TF2
+- Signature-backed interface lookups checked: 5 missing on native Linux TF2
 
 `IUniformRandomStream` is now resolved through a Linux adapter backed by native
 `libvstdlib.so` exports instead of the old Windows client signature.
@@ -85,6 +85,8 @@ offsets.
 object offset.
 `ThirdPersonManager` is resolved from a verified native Linux `client.so`
 `.bss` object offset.
+`GlobalVars` is resolved from a verified native Linux `engine.so` `.bss` object
+offset.
 
 That means versioned `CreateInterface` lookups are the first viable runtime
 surface, while the remaining byte signatures still need native Linux

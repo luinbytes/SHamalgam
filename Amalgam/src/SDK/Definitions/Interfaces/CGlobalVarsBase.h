@@ -23,4 +23,8 @@ public:
 	int nTimestampRandomizeWindow;
 };
 
+#ifdef __linux__
+MAKE_INTERFACE_NULL(CGlobalVarsBase, GlobalVars);
+#else
 MAKE_INTERFACE_SIGNATURE(CGlobalVarsBase, GlobalVars, "engine.dll", "48 8D 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 48 8B CA", 0x0, 0);
+#endif
