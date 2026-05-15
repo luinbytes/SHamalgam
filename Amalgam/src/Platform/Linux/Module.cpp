@@ -78,6 +78,7 @@ std::vector<std::string> ModuleAliases(const char* requested)
 		{ "soundemittersystem.dll", { "soundemittersystem.so" } },
 		{ "vstdlib.dll", { "libvstdlib.so", "vstdlib.so" } },
 		{ "tier0.dll", { "libtier0.so", "tier0.so" } },
+		{ "steam_api64.dll", { "libsteam_api.so", "steam_api.so" } },
 		{ "steamclient64.dll", { "steamclient.so", "libsteamclient.so" } },
 	};
 
