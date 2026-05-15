@@ -90,4 +90,8 @@ public:
 	virtual IReplayScreenshotSystem* GetReplayScreenshotSystem() = 0;
 };
 
+#ifdef __linux__
+MAKE_INTERFACE_NULL(IViewRender, ViewRender);
+#else
 MAKE_INTERFACE_SIGNATURE(IViewRender, ViewRender, "client.dll", "48 8B 0D ? ? ? ? 48 8B 01 FF 90 ? ? ? ? 48 8B 03 48 8D 54 24", 0x0, 1);
+#endif

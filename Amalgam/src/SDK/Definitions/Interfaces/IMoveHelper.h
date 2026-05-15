@@ -30,4 +30,8 @@ protected:
 	virtual ~IMoveHelper() {}
 };
 
+#ifdef __linux__
+MAKE_INTERFACE_NULL(IMoveHelper, MoveHelper);
+#else
 MAKE_INTERFACE_SIGNATURE(IMoveHelper, MoveHelper, "client.dll", "48 8B 0D ? ? ? ? 48 8B 01 FF 50 ? 0F B7 D7", 0x0, 1);
+#endif

@@ -174,4 +174,8 @@ public:
 		float brightness) = 0;
 };
 
+#ifdef __linux__
+MAKE_INTERFACE_NULL(IViewRenderBeams, ViewRenderBeams);
+#else
 MAKE_INTERFACE_SIGNATURE(IViewRenderBeams, ViewRenderBeams, "client.dll", "48 8B 0D ? ? ? ? 48 8B D3 48 8B 01 FF 50 ? 0F B7 93", 0x0, 1);
+#endif

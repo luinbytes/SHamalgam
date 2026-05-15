@@ -62,7 +62,7 @@ Current audit baseline:
 - Linux shared object build: passing
 - Interface version strings checked: 24 present
 - Windows/native byte signatures checked: 258 total, 8 present and 250 missing
-- Signature-backed interface lookups checked: 13 missing on native Linux TF2
+- Signature-backed interface lookups checked: 8 missing on native Linux TF2
 
 `IUniformRandomStream` is now resolved through a Linux adapter backed by native
 `libvstdlib.so` exports instead of the old Windows client signature.
@@ -77,6 +77,9 @@ signatures.
 `CStaticPropMgr::DrawStaticProps` has a native Linux `engine.so` signature.
 `StaticPropMgr` is resolved on Linux through the native `StaticPropMgrClient004`
 interface with the verified `CStaticPropMgr` base adjustment.
+`MoveHelper`, `ViewRenderBeams`, `ViewRender`, `Input`, and
+`TFGCClientSystem` are resolved from verified native Linux `client.so` object
+offsets.
 
 That means versioned `CreateInterface` lookups are the first viable runtime
 surface, while every byte signature still needs native Linux replacement work.

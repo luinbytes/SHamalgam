@@ -11,6 +11,14 @@ MAKE_SIGNATURE(Get_SteamNetworkingUtils, "client.dll", "40 53 48 83 EC ? 48 8B D
 #endif
 
 #ifdef __linux__
+template <typename T>
+T* LinuxModuleOffset(const char* sModule, uintptr_t uOffset)
+{
+	if (const auto hModule = GetModuleHandle(sModule))
+		return reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(hModule) + uOffset);
+	return nullptr;
+}
+
 class CLinuxUniformRandomStream final : public IUniformRandomStream
 {
 public:
@@ -51,6 +59,21 @@ bool CNullInterfaces::Initialize()
 	if (auto pStaticPropMgrClient = U::Memory.FindInterface("engine.dll", "StaticPropMgrClient004"))
 		I::StaticPropMgr = reinterpret_cast<CStaticPropMgr*>(reinterpret_cast<uintptr_t>(pStaticPropMgrClient) - sizeof(void*));
 	Validate(I::StaticPropMgr);
+
+	I::MoveHelper = LinuxModuleOffset<IMoveHelper>("client.dll", 0x2E58820);
+	Validate(I::MoveHelper);
+
+	I::ViewRenderBeams = LinuxModuleOffset<IViewRenderBeams>("client.dll", 0x2E65080);
+	Validate(I::ViewRenderBeams);
+
+	I::ViewRender = LinuxModuleOffset<IViewRender>("client.dll", 0x2E64200);
+	Validate(I::ViewRender);
+
+	I::Input = LinuxModuleOffset<IInput>("client.dll", 0x2EC5F80);
+	Validate(I::Input);
+
+	I::TFGCClientSystem = LinuxModuleOffset<CTFGCClientSystem>("client.dll", 0x2EF4160);
+	Validate(I::TFGCClientSystem);
 #endif
 
 	I::TFPartyClient = S::Get_TFPartyClient.Call<CTFPartyClient*>();
