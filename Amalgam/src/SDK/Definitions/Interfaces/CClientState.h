@@ -99,4 +99,8 @@ public:
 	}
 };
 
+#ifdef __linux__
+MAKE_INTERFACE_NULL(CClientState, ClientState);
+#else
 MAKE_INTERFACE_SIGNATURE(CClientState, ClientState, "engine.dll", "48 8D 0D ? ? ? ? E8 ? ? ? ? F3 0F 5E 05", 0x0, 0);
+#endif
