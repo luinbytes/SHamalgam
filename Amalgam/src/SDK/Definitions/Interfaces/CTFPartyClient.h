@@ -7,13 +7,21 @@ MAKE_SIGNATURE(CTFPartyClient_SendPartyChat, "client.dll", "55 48 89 E5 41 57 41
 MAKE_SIGNATURE(CTFPartyClient_SendPartyChat, "client.dll", "48 89 5C 24 ? 48 89 6C 24 ? 57 48 83 EC ? 48 C7 C3", 0x0);
 #endif
 MAKE_SIGNATURE(CTFPartyClient_LoadSavedCasualCriteria, "client.dll", "48 83 79 ? ? C6 81 ? ? ? ? ? 74 ? 80 79 ? ? 74 ? C6 81 ? ? ? ? ? 48 8B 15", 0x0);
+#ifdef __linux__
+MAKE_SIGNATURE(CTFPartyClient_BInQueueForMatchGroup, "client.dll", "55 48 89 E5 41 55 41 54 41 89 F4 53 48 83 EC ? E8 ? ? ? ? 44 89 E7 84 C0 74", 0x0);
+#else
 MAKE_SIGNATURE(CTFPartyClient_BInQueueForMatchGroup, "client.dll", "48 89 5C 24 ? 57 48 83 EC ? 48 8B F9 8B DA 8B CA E8 ? ? ? ? 84 C0", 0x0);
+#endif
 #ifdef __linux__
 MAKE_SIGNATURE(CTFPartyClient_RequestQueueForMatch, "client.dll", "55 48 89 E5 41 57 41 56 49 89 FE 89 F7 41 55 41 54 41 89 F4 53 48 81 EC ? ? ? ? E8 ? ? ? ? 41 83 FC FF", 0x0);
 #else
 MAKE_SIGNATURE(CTFPartyClient_RequestQueueForMatch, "client.dll", "40 55 56 48 81 EC ? ? ? ? 48 63 F2", 0x0);
 #endif
+#ifdef __linux__
+MAKE_SIGNATURE(CCasualCriteriaHelper_CCasualCriteriaHelper, "client.dll", "55 48 89 E5 41 57 41 56 41 55 41 54 49 89 F4 53 48 89 FB 48 83 EC ? 48 C7 07 ? ? ? ? 48 C7 47 ? ? ? ? ? 48 C7 47 ? ? ? ? ? E8", 0x0);
+#else
 MAKE_SIGNATURE(CCasualCriteriaHelper_CCasualCriteriaHelper, "client.dll", "48 89 5C 24 ? 56 57 41 57 48 83 EC ? 0F 57 C0", 0x0);
+#endif
 MAKE_SIGNATURE(CTFGroupMatchCriteriaProto_DefaultInstance, "client.dll", "48 8B 05 ? ? ? ? 48 8B 50 ? 48 8D 4C 24 ? E8 ? ? ? ? 44 8B 44 24", 0x0);
 
 class CTFCasualMatchCriteria
