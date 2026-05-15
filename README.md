@@ -60,6 +60,10 @@ tools/linux_signature_audit.py --interfaces
 Current audit baseline:
 
 - Linux shared object build: passing
+- Linux startup path: process/module readiness and signature/interface
+  bootstrap are Linux-aware
+- Linux hooks, rendering, materials, events, byte patches, and config loading:
+  temporarily disabled until their native paths are verified
 - Interface version strings checked: 24 present
 - Windows/native byte signatures checked: 258 total, 9 present and 249 missing
 - Signature-backed interface lookups checked: 3 missing on native Linux TF2

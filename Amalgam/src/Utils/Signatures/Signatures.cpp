@@ -21,7 +21,11 @@ bool CSignature::Initialize()
 	m_dwVal = U::Memory.FindSignature(m_sDLLName, m_sSignature);
 	if (!m_dwVal)
 	{
+#ifdef __linux__
+		OutputDebugStringA(std::format("CSignature::Initialize() unresolved on Linux:\n  {}\n  {}\n  {}\n", m_sName, m_sDLLName, m_sSignature).c_str());
+#else
 		U::Core.AppendFailText(std::format("CSignature::Initialize() failed to initialize:\n  {}\n  {}\n  {}", m_sName, m_sDLLName, m_sSignature).c_str());
+#endif
 		return false;
 	}
 
@@ -31,14 +35,27 @@ bool CSignature::Initialize()
 
 bool CSignatures::Initialize()
 {
+#ifdef __linux__
+	size_t nMissing = 0;
+#endif
 	for (auto pSignature : m_vSignatures)
 	{
 		if (!pSignature)
 			continue;
 
 		if (!pSignature->Initialize())
+#ifdef __linux__
+			nMissing++;
+#else
 			m_bFailed = true;
+#endif
 	}
 
+#ifdef __linux__
+	if (nMissing)
+		OutputDebugStringA(std::format("CSignatures::Initialize() continuing with {} unresolved Linux signatures\n", nMissing).c_str());
+	return true;
+#else
 	return !m_bFailed;
+#endif
 }

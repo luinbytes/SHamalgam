@@ -13,6 +13,13 @@
 
 static inline std::string GetProcessName(DWORD dwProcessID)
 {
+#ifdef __linux__
+	char buffer[MAX_PATH] = {};
+	std::ifstream file("/proc/self/comm");
+	if (file.getline(buffer, sizeof(buffer)))
+		return buffer;
+	return "";
+#else
 	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessID);
 	if (!hProcess)
 		return "";
@@ -25,6 +32,7 @@ static inline std::string GetProcessName(DWORD dwProcessID)
 
 	CloseHandle(hProcess);
 	return "";
+#endif
 }
 
 static inline bool CheckDXLevel()
@@ -79,7 +87,11 @@ void CCore::LogFailText()
 
 void CCore::Load()
 {
+#ifdef __linux__
+	if (m_bUnload = m_bFailed = FNV1A::Hash32(GetProcessName(GetCurrentProcessId()).c_str()) != FNV1A::Hash32Const("tf_linux64"))
+#else
 	if (m_bUnload = m_bFailed = FNV1A::Hash32(GetProcessName(GetCurrentProcessId()).c_str()) != FNV1A::Hash32Const("tf_win64.exe"))
+#endif
 	{
 		AppendFailText("Invalid process");
 		return;
@@ -88,16 +100,28 @@ void CCore::Load()
 	float flTime = 0.f;
 	while (true)
 	{
+#ifdef __linux__
+		auto hClient = GetModuleHandle("client.dll");
+		auto hEngine = GetModuleHandle("engine.dll");
+		auto hVStdLib = GetModuleHandle("vstdlib.dll");
+		if (hClient && hEngine && hVStdLib)
+			break;
+#else
 		auto uSignature = U::Memory.FindSignature("client.dll", "48 8B 0D ? ? ? ? 48 8B 10 48 8B 19 48 8B C8 FF 92");
 		auto uDereference = uSignature ? *reinterpret_cast<uintptr_t*>(U::Memory.RelToAbs(uSignature)) : 0;
 		auto hWindow = SDK::GetTeamFortressWindow();
 		if (uDereference && hWindow)
 			break;
+#endif
 
 		Sleep(500), flTime += 0.5f;
 		if (m_bUnload = m_bFailed = flTime >= 60.f)
 		{
+#ifdef __linux__
+			AppendFailText("Failed to load in time: native TF2 Linux modules were not ready");
+#else
 			AppendFailText(std::format("Failed to load in time:\n  {:#x} ({:#x})\n  {:#x}", uDereference, uSignature, uintptr_t(hWindow)).c_str());
+#endif
 			return;
 		}
 		if (m_bUnload = m_bFailed = U::KeyHandler.Down(VK_F11, true))
@@ -108,8 +132,16 @@ void CCore::Load()
 	}
 	Sleep(500);
 
+#ifdef __linux__
+	if (m_bUnload = m_bFailed = !U::Signatures.Initialize() || !U::Interfaces.Initialize())
+#else
 	if (m_bUnload = m_bFailed = !U::Signatures.Initialize() || !U::Interfaces.Initialize() || !CheckDXLevel())
+#endif
 		return;
+#ifdef __linux__
+	SDK::Output("SHamalgam", "Loaded Linux bootstrap. Hooks, rendering, materials, events, byte patches, and config loading are disabled until their native paths are proven.", DEFAULT_COLOR, OUTPUT_CONSOLE | OUTPUT_DEBUG);
+	return;
+#else
 	if (m_bUnload = m_bFailed2 = !U::Hooks.Initialize() || !U::BytePatches.Initialize() || !H::Events.Initialize())
 		return;
 	F::Materials.LoadMaterials();
@@ -117,6 +149,7 @@ void CCore::Load()
 	F::Configs.LoadConfig(F::Configs.m_sCurrentConfig, false);
 
 	SDK::Output("Amalgam", "Loaded", DEFAULT_COLOR, OUTPUT_CONSOLE | OUTPUT_TOAST | OUTPUT_MENU | OUTPUT_DEBUG);
+#endif
 }
 
 void CCore::Loop()
