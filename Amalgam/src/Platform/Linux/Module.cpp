@@ -3,10 +3,12 @@
 #include <platform/linux/Psapi.h>
 #include <dlfcn.h>
 #include <link.h>
+#include <cctype>
 #include <cstring>
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 
 namespace
 {
@@ -52,6 +54,41 @@ std::vector<ModuleRecord> EnumerateModules()
 	return modules;
 }
 
+std::vector<std::string> ModuleAliases(const char* requested)
+{
+	if (!requested || !*requested)
+		return {};
+
+	std::string name = requested;
+	std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+	static const std::unordered_map<std::string, std::vector<std::string>> aliases =
+	{
+		{ "client.dll", { "client.so" } },
+		{ "server.dll", { "server.so" } },
+		{ "engine.dll", { "engine.so" } },
+		{ "materialsystem.dll", { "materialsystem.so" } },
+		{ "vguimatsurface.dll", { "vguimatsurface.so" } },
+		{ "vgui2.dll", { "vgui2.so" } },
+		{ "vphysics.dll", { "vphysics.so" } },
+		{ "studiorender.dll", { "studiorender.so" } },
+		{ "inputsystem.dll", { "inputsystem.so" } },
+		{ "datacache.dll", { "datacache.so" } },
+		{ "filesystem_stdio.dll", { "filesystem_stdio.so" } },
+		{ "soundemittersystem.dll", { "soundemittersystem.so" } },
+		{ "vstdlib.dll", { "libvstdlib.so", "vstdlib.so" } },
+		{ "tier0.dll", { "libtier0.so", "tier0.so" } },
+	};
+
+	std::vector<std::string> result = { requested, name };
+	if (auto found = aliases.find(name); found != aliases.end())
+		result.insert(result.end(), found->second.begin(), found->second.end());
+	else if (name.ends_with(".dll"))
+		result.push_back(name.substr(0, name.size() - 4) + ".so");
+
+	return result;
+}
+
 bool ModuleMatches(const ModuleRecord& module, const char* requested)
 {
 	if (!requested || !*requested)
@@ -60,7 +97,16 @@ bool ModuleMatches(const ModuleRecord& module, const char* requested)
 	std::string name = module.name;
 	auto slash = name.find_last_of('/');
 	std::string base = slash == std::string::npos ? name : name.substr(slash + 1);
-	return base == requested || name.find(requested) != std::string::npos;
+	std::transform(base.begin(), base.end(), base.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+	for (auto alias : ModuleAliases(requested))
+	{
+		std::transform(alias.begin(), alias.end(), alias.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+		if (base == alias || name.find(alias) != std::string::npos)
+			return true;
+	}
+
+	return false;
 }
 
 const ModuleRecord* FindModuleByHandle(HMODULE handle, std::vector<ModuleRecord>& modules)
@@ -162,4 +208,3 @@ DWORD GetModuleBaseName(HANDLE, HMODULE hModule, LPSTR name, DWORD size)
 }
 
 #endif
-
