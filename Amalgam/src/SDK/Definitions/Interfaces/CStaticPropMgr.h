@@ -127,4 +127,8 @@ public:
 	float m_flLastViewFactor;
 };
 
+#ifdef __linux__
+MAKE_INTERFACE_NULL(CStaticPropMgr, StaticPropMgr);
+#else
 MAKE_INTERFACE_SIGNATURE(CStaticPropMgr, StaticPropMgr, "engine.dll", "48 8D 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 48 89 5C 24 ? 48 89 74 24 ? 57 48 81 EC ? ? ? ? 41 8B C0", 0x0, 0);
+#endif

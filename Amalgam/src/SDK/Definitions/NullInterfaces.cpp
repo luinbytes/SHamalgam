@@ -47,6 +47,10 @@ bool CNullInterfaces::Initialize()
 	static CLinuxUniformRandomStream LinuxUniformRandomStream;
 	I::UniformRandomStream = &LinuxUniformRandomStream;
 	Validate(I::UniformRandomStream);
+
+	if (auto pStaticPropMgrClient = U::Memory.FindInterface("engine.dll", "StaticPropMgrClient004"))
+		I::StaticPropMgr = reinterpret_cast<CStaticPropMgr*>(reinterpret_cast<uintptr_t>(pStaticPropMgrClient) - sizeof(void*));
+	Validate(I::StaticPropMgr);
 #endif
 
 	I::TFPartyClient = S::Get_TFPartyClient.Call<CTFPartyClient*>();
