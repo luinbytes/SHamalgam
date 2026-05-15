@@ -7,7 +7,11 @@
 #include "../Features/Visuals/Materials/Materials.h"
 #include "../Features/Spectate/Spectate.h"
 
+#ifdef __linux__
+MAKE_SIGNATURE(CViewRender_DrawViewModels, "client.dll", "55 31 C0 48 89 E5 41 57 41 56 41 55 41 89 D5 41 54 49 89 FC 53 48 89 F3 48 81 EC ? ? ? ? 4C 8B 35", 0x0);
+#else
 MAKE_SIGNATURE(CViewRender_DrawViewModels, "client.dll", "48 89 5C 24 ? 55 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 ? 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ? 48 8B FA", 0x0);
+#endif
 
 MAKE_HOOK(CClientModeShared_DoPostScreenSpaceEffects, U::Memory.GetVirtual(I::ClientModeShared, 39), bool,
 	void* rcx, const CViewSetup* pSetup)
