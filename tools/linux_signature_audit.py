@@ -77,10 +77,53 @@ def iter_sources(root: pathlib.Path):
         yield from root.rglob(suffix)
 
 
+def linux_active_source(text: str) -> str:
+    lines = []
+    active = True
+    stack = []
+
+    for line in text.splitlines(keepends=True):
+        stripped = line.strip()
+        if stripped in ("#ifdef __linux__", "#if defined(__linux__)", "#if defined __linux__"):
+            stack.append({"parent": active, "handled": True, "taken": True})
+            active = active and True
+            continue
+        if stripped in ("#ifndef __linux__", "#if !defined(__linux__)", "#if !defined __linux__"):
+            stack.append({"parent": active, "handled": True, "taken": False})
+            active = False
+            continue
+        if stripped.startswith("#if"):
+            stack.append({"parent": active, "handled": False, "taken": active})
+            continue
+        if stripped == "#else" and stack:
+            frame = stack[-1]
+            if frame["handled"]:
+                active = frame["parent"] and not frame["taken"]
+                frame["taken"] = True
+            continue
+        if stripped.startswith("#elif") and stack:
+            frame = stack[-1]
+            if frame["handled"]:
+                active = False
+            continue
+        if stripped == "#endif" and stack:
+            frame = stack.pop()
+            active = frame["parent"]
+            continue
+        if active:
+            lines.append(line)
+
+    return "".join(lines)
+
+
+def read_linux_source(path: pathlib.Path) -> str:
+    return linux_active_source(path.read_text(errors="ignore"))
+
+
 def collect_string_defines(root: pathlib.Path):
     defines = {}
     for path in iter_sources(root):
-        text = path.read_text(errors="ignore")
+        text = read_linux_source(path)
         for match in DEFINE_STRING_RE.finditer(text):
             defines[match.group(1)] = match.group(2)
     return defines
@@ -104,7 +147,7 @@ def main():
     results = []
 
     for path in iter_sources(source_root):
-        text = path.read_text(errors="ignore")
+        text = read_linux_source(path)
         for match in SIGNATURE_RE.finditer(text):
             name, module, signature = match.group(1), match.group(2).lower(), match.group(3)
             module_path = modules.get(module)
@@ -141,7 +184,7 @@ def main():
         interface_results = []
         interface_signature_results = []
         for path in iter_sources(source_root):
-            text = path.read_text(errors="ignore")
+            text = read_linux_source(path)
             for match in INTERFACE_VERSION_RE.finditer(text):
                 name, module, version_expr = match.group(1), match.group(2).lower(), match.group(3)
                 version = version_expr[1:-1] if version_expr.startswith('"') else string_defines.get(version_expr, version_expr)

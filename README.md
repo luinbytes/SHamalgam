@@ -60,8 +60,9 @@ tools/linux_signature_audit.py --interfaces
 Current audit baseline:
 
 - Linux shared object build: passing
-- Interface version strings checked: 23 present
+- Interface version strings checked: 24 present
 - Windows byte signatures checked: 259 missing on native Linux TF2
+- Signature-backed interface lookups checked: 15 missing on native Linux TF2
 
 That means versioned `CreateInterface` lookups are the first viable runtime
 surface, while every byte signature still needs native Linux replacement work.
