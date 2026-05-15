@@ -33,6 +33,10 @@ INTERFACE_VERSION_RE = re.compile(
     r'MAKE_INTERFACE_VERSION\s*\(\s*[^,]+,\s*([^,]+),\s*"([^"]+)"\s*,\s*("[^"]+"|[A-Za-z0-9_]+)',
     re.MULTILINE,
 )
+INTERFACE_SIGNATURE_RE = re.compile(
+    r'MAKE_INTERFACE_SIGNATURE\s*\(\s*[^,]+,\s*([^,]+),\s*"([^"]+)"\s*,\s*"([0-9A-Fa-f? ]+)"',
+    re.MULTILINE,
+)
 DEFINE_STRING_RE = re.compile(r"#define\s+([A-Za-z0-9_]+)\s+\"([^\"]+)\"")
 
 
@@ -135,6 +139,7 @@ def main():
     if args.interfaces:
         string_defines = collect_string_defines(source_root)
         interface_results = []
+        interface_signature_results = []
         for path in iter_sources(source_root):
             text = path.read_text(errors="ignore")
             for match in INTERFACE_VERSION_RE.finditer(text):
@@ -148,14 +153,31 @@ def main():
                 data = cache.setdefault(module_path, module_path.read_bytes())
                 interface_results.append(("present" if version.encode() in data else "missing", module, name, version, path))
 
+            for match in INTERFACE_SIGNATURE_RE.finditer(text):
+                name, module, signature = match.group(1), match.group(2).lower(), match.group(3)
+                module_path = modules.get(module)
+                if not module_path or not module_path.exists():
+                    interface_signature_results.append(("missing-module", module, name, path, ""))
+                    continue
+
+                data = cache.setdefault(module_path, module_path.read_bytes())
+                offset = find_pattern(data, pattern_bytes(signature))
+                interface_signature_results.append(("hit" if offset >= 0 else "miss", module, name, path, hex(offset) if offset >= 0 else ""))
+
         interface_status = collections.Counter(result[0] for result in interface_results)
+        interface_signature_status = collections.Counter(result[0] for result in interface_signature_results)
         print()
         print(f"Interface versions checked: {len(interface_results)}")
         print("Interface status:", dict(interface_status))
+        print(f"Signature interfaces checked: {len(interface_signature_results)}")
+        print("Signature interface status:", dict(interface_signature_status))
         if args.list:
             print()
             for state, module, name, version, path in interface_results:
                 print(f"interface-{state}: {module}: {name}: {version}: {path}")
+            for state, module, name, path, offset in interface_signature_results:
+                suffix = f" @ {offset}" if offset else ""
+                print(f"signature-interface-{state}: {module}: {name}: {path}{suffix}")
 
 
 if __name__ == "__main__":
