@@ -61,7 +61,7 @@ Current audit baseline:
 
 - Linux shared object build: passing
 - Interface version strings checked: 24 present
-- Windows/native byte signatures checked: 258 total, 8 present and 250 missing
+- Windows/native byte signatures checked: 258 total, 9 present and 249 missing
 - Signature-backed interface lookups checked: 7 missing on native Linux TF2
 
 `IUniformRandomStream` is now resolved through a Linux adapter backed by native
@@ -71,6 +71,7 @@ Linux.
 `CTFPartyClient::SendPartyChat`, `CTFPartyClient::BInQueueForMatchGroup`,
 `CTFPartyClient::RequestQueueForMatch`, and `CCasualCriteriaHelper` now have
 native Linux `client.so` signatures.
+`Get_TFPartyClient` now uses a native Linux `client.so` getter signature.
 `CViewRender::DrawViewModels`, `CViewRender::DrawUnderwaterOverlay`, and
 `CViewRender::PerformScreenOverlay` also have native Linux `client.so`
 signatures.
@@ -84,7 +85,8 @@ offsets.
 object offset.
 
 That means versioned `CreateInterface` lookups are the first viable runtime
-surface, while every byte signature still needs native Linux replacement work.
+surface, while the remaining byte signatures still need native Linux
+replacement work.
 
 ## Repository Layout
 
