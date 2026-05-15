@@ -43,6 +43,29 @@ cmake --build build -j"$(nproc)"
 
 The expected output target is a Linux shared object in the build directory.
 
+## Native TF2 Audit
+
+The local native Linux TF2 install used for porting is:
+
+```text
+/mnt/ssd/.games/steamapps/common/Team Fortress 2
+```
+
+Useful current checks:
+
+```sh
+tools/linux_signature_audit.py --interfaces
+```
+
+Current audit baseline:
+
+- Linux shared object build: passing
+- Interface version strings checked: 23 present
+- Windows byte signatures checked: 259 missing on native Linux TF2
+
+That means versioned `CreateInterface` lookups are the first viable runtime
+surface, while every byte signature still needs native Linux replacement work.
+
 ## Repository Layout
 
 - `Amalgam/` contains the carried-over source tree being ported.
@@ -66,4 +89,3 @@ The safest workflow is:
    interfaces, and vtables.
 4. Replace temporary compatibility scaffolding with verified Linux-native code.
 5. Test inside native Linux TF2.
-
