@@ -1,45 +1,38 @@
-<div align="center">
+# SHamalgam
 
-  ## SHamalgam
+SHamalgam is a native Linux TF2 internal port of Amalgam.
 
-  [![Stars](https://img.shields.io/github/stars/rei-2/Amalgam?style=for-the-badge&color=white&logo=github)](/../../stargazers)
-  [![Discord](https://img.shields.io/discord/1227898008373297223?style=for-the-badge&color=blue&labelColor=grey&label=Discord&logo=discord)](https://discord.gg/RbP9DfkUhe)
-  [![Workflow status](https://img.shields.io/github/actions/workflow/status/rei-2/Amalgam/msbuild.yml?branch=master&style=for-the-badge)](/../../actions)
-  [![Commit activity](https://img.shields.io/github/commit-activity/m/rei-2/Amalgam?style=for-the-badge)](/../../commits/)
-  
-  [![Download](.github/assets/download.svg)](https://nightly.link/rei-2/Amalgam/workflows/msbuild/master/Amalgamx64Release.zip)
-  [![PDB](.github/assets/pdb.svg)](https://nightly.link/rei-2/Amalgam/workflows/msbuild/master/Amalgamx64ReleasePDB.zip)
-  [![Download AVX2](.github/assets/download_avx2.svg)](https://nightly.link/rei-2/Amalgam/workflows/msbuild/master/Amalgamx64ReleaseAVX2.zip)
-  [![PDB AVX2](.github/assets/pdb.svg)](https://nightly.link/rei-2/Amalgam/workflows/msbuild/master/Amalgamx64ReleaseAVX2PDB.zip)
-  <br>
-  [![Freetype](.github/assets/freetype.svg)](https://nightly.link/rei-2/Amalgam/workflows/msbuild/master/Amalgamx64ReleaseFreetype.zip)
-  [![PDB Freetype](.github/assets/pdb.svg)](https://nightly.link/rei-2/Amalgam/workflows/msbuild/master/Amalgamx64ReleaseFreetypePDB.zip)
-  [![Freetype AVX2](.github/assets/freetype_avx2.svg)](https://nightly.link/rei-2/Amalgam/workflows/msbuild/master/Amalgamx64ReleaseFreetypeAVX2.zip)
-  [![PDB Freetype AVX2](.github/assets/pdb.svg)](https://nightly.link/rei-2/Amalgam/workflows/msbuild/master/Amalgamx64ReleaseFreetypeAVX2PDB.zip)
-
-  <sub>AVX2 may be faster than SSE2 though not all CPUs support it (`Steam > Help > System Information > Processor Information > AVX2`). Freetype uses freetype as the text rasterizer and includes some custom fonts, which results in better looking text but larger DLL sizes. PDBs are for developer use. </sub>
-  <br><br>
-  <sub>If nightly.link is down or can't be accessed, you can still download through [GitHub](https://github.com/rei-2/Amalgam/actions) with an account. </sub>
-
-  ##
-
-  Native Linux porting branch for Amalgam TF2.
-
-</div>
+The goal is boringly specific: keep Amalgam's TF2 feature set and behavior as
+close to 1:1 as possible, but make it work against the native Linux build of
+Team Fortress 2 instead of the Windows client.
 
 ## Status
 
-SHamalgam is an in-progress native Linux TF2 internal port of Amalgam. The goal is
-1:1 behavior with the Windows internal, not a reduced rewrite.
+This repository is in the early porting stage.
 
-Current work is focused on:
+The current focus is getting the original codebase building cleanly as a Linux
+shared object, then replacing the Windows-only layers with Linux-native
+equivalents:
 
-- Building the original codebase as a Linux shared object.
-- Replacing Win32/D3D9/MinHook entry, input, render, and patching layers with Linux-native equivalents.
-- Revalidating every module name, interface lookup, vtable index, and signature against native Linux TF2 binaries.
+- process entry and unload handling
+- module and interface lookup
+- inline hooks
+- input handling
+- rendering
+- file and path helpers
+- TF2 signatures, offsets, vtables, and interface versions
 
-Windows signatures and offsets are kept as labels and a porting map only. They are
-not assumed to be valid on native Linux TF2.
+Compile success is only the first gate. Runtime correctness still needs to be
+validated against the installed native Linux TF2 binaries.
+
+## Important Porting Note
+
+Windows signatures, offsets, module names, and vtable assumptions are not
+treated as valid on Linux.
+
+When old names appear in the source, they are being used as labels and porting
+breadcrumbs. Each one still needs to be verified against the native Linux TF2
+client and engine modules before it can be considered real.
 
 ## Build
 
@@ -48,5 +41,29 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_COMPILER=clang
 cmake --build build -j"$(nproc)"
 ```
 
-This is not production-ready yet. Compile success is only the first gate; runtime
-parity requires Linux TF2 binary verification.
+The expected output target is a Linux shared object in the build directory.
+
+## Repository Layout
+
+- `Amalgam/` contains the carried-over source tree being ported.
+- `Amalgam/include/platform/linux/` contains compatibility headers for code that
+  still expects Win32-style types or APIs.
+- `Amalgam/src/Platform/Linux/` contains native Linux replacements for process,
+  module, hook, entry, and temporary platform glue.
+- `CMakeLists.txt` is the Linux build entrypoint.
+
+## Development Notes
+
+This is intentionally not a rewrite. The plan is to keep behavior aligned with
+the original project while swapping out platform-specific assumptions one layer
+at a time.
+
+The safest workflow is:
+
+1. Build the Linux shared object.
+2. Validate compile-time compatibility changes.
+3. Inspect native TF2 Linux binaries for the real symbols, modules, signatures,
+   interfaces, and vtables.
+4. Replace temporary compatibility scaffolding with verified Linux-native code.
+5. Test inside native Linux TF2.
+
