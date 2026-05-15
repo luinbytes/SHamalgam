@@ -62,7 +62,10 @@ Current audit baseline:
 - Linux shared object build: passing
 - Interface version strings checked: 24 present
 - Windows byte signatures checked: 259 missing on native Linux TF2
-- Signature-backed interface lookups checked: 15 missing on native Linux TF2
+- Signature-backed interface lookups checked: 14 missing on native Linux TF2
+
+`IUniformRandomStream` is now resolved through a Linux adapter backed by native
+`libvstdlib.so` exports instead of the old Windows client signature.
 
 That means versioned `CreateInterface` lookups are the first viable runtime
 surface, while every byte signature still needs native Linux replacement work.

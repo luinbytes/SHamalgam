@@ -10,4 +10,8 @@ public:
 	virtual float RandomFloatExp(float flMinVal = 0.f, float flMaxVal = 1.f, float flExponent = 1.f) = 0;
 };
 
+#ifdef __linux__
+MAKE_INTERFACE_NULL(IUniformRandomStream, UniformRandomStream);
+#else
 MAKE_INTERFACE_SIGNATURE(IUniformRandomStream, UniformRandomStream, "client.dll", "48 8B 0D ? ? ? ? F3 0F 59 CA 44 8D 42", 0x0, 1);
+#endif

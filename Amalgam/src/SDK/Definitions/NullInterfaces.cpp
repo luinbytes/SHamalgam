@@ -8,8 +8,45 @@
 MAKE_SIGNATURE(Get_TFPartyClient, "client.dll", "48 8B 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56", 0x0);
 MAKE_SIGNATURE(Get_SteamNetworkingUtils, "client.dll", "40 53 48 83 EC ? 48 8B D9 48 8D 15 ? ? ? ? 33 C9 FF 15 ? ? ? ? 33 C9", 0x0);
 
+#ifdef __linux__
+class CLinuxUniformRandomStream final : public IUniformRandomStream
+{
+public:
+	void SetSeed(int iSeed) override
+	{
+		static auto RandomSeed = U::Memory.GetModuleExport<void(*)(int)>("vstdlib.dll", "RandomSeed");
+		if (RandomSeed)
+			RandomSeed(iSeed);
+	}
+
+	float RandomFloat(float flMinVal = 0.f, float flMaxVal = 1.f) override
+	{
+		static auto RandomFloat = U::Memory.GetModuleExport<float(*)(float, float)>("vstdlib.dll", "RandomFloat");
+		return RandomFloat ? RandomFloat(flMinVal, flMaxVal) : flMinVal;
+	}
+
+	int RandomInt(int iMinVal, int iMaxVal) override
+	{
+		static auto RandomInt = U::Memory.GetModuleExport<int(*)(int, int)>("vstdlib.dll", "RandomInt");
+		return RandomInt ? RandomInt(iMinVal, iMaxVal) : iMinVal;
+	}
+
+	float RandomFloatExp(float flMinVal = 0.f, float flMaxVal = 1.f, float flExponent = 1.f) override
+	{
+		static auto RandomFloatExp = U::Memory.GetModuleExport<float(*)(float, float, float)>("vstdlib.dll", "RandomFloatExp");
+		return RandomFloatExp ? RandomFloatExp(flMinVal, flMaxVal, flExponent) : RandomFloat(flMinVal, flMaxVal);
+	}
+};
+#endif
+
 bool CNullInterfaces::Initialize()
 {
+#ifdef __linux__
+	static CLinuxUniformRandomStream LinuxUniformRandomStream;
+	I::UniformRandomStream = &LinuxUniformRandomStream;
+	Validate(I::UniformRandomStream);
+#endif
+
 	I::TFPartyClient = S::Get_TFPartyClient.Call<CTFPartyClient*>();
 	Validate(I::TFPartyClient);
 
